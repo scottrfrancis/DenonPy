@@ -8,6 +8,8 @@ Objective
 
 Create scripts to control and record status of a Denon AVR 2308ci receiver. [Denon Command Protocol](https://usa.denon.com/us/product/HomeTheater/receivers/AVR2308CI?docname=AVR-2308CISerialProtocol_Ver540.pdf\)
 
+See [the blog](https://scottrfrancis.wordpress.com/2017/12/10/adding-alexa-to-an-old-av-receiver/) about this project.
+
 Environment
 -----------
 

@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
-import time
-
 import DenonProtocol
 import DenonSerial
+import Shadow
+
+import time
+
 
 
 config = {  'port': '/dev/ttyUSB0',
@@ -33,7 +35,8 @@ def do_something(connection, protocol):
     events = connection.listen(0.8*config['update'])
 
     protocol.parseEvents(events)
-    print protocol.getState()
+    # print protocol.getState()
+    print Shadow.makeStatePayload("reported", protocol.getState())
 
 
 def run(connection, protocol):
