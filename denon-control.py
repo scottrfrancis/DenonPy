@@ -7,6 +7,7 @@ import Shadow
 
 import argparse
 from datetime import datetime
+import json
 import logging
 import time
 
@@ -70,7 +71,7 @@ def customShadowCallback_Update(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
-        print("property: " + str(payloadDict["state"]["desired"]["property"]))
+        print("payload: " + json.dumps(payloadDict)) #["state"]["desired"]["property"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
@@ -122,7 +123,7 @@ def do_something(connection, protocol):
 
     if protocol.parseEvents(events):
         state = protocol.getState()
-        print str(datetime.now()) + " - " + state
+        print str(datetime.now()) + " - " + json.dumps(state)
 
         deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
 
