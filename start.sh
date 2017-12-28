@@ -20,5 +20,8 @@ set -e
 # printf "\nRunning pub/sub sample application...\n"
 # python aws-iot-device-sdk-python/samples/basicPubSub/basicPubSub.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r root-CA.crt -c SeriAlexa-0001.cert.pem -k SeriAlexa-0001.private.key -t "$aws/things/SeriAlexa-0001/foo" -m publish
 
-printf "\nRunning shadow sample application...\n"
-python basicShadowUpdater.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001"
+# printf "\nRunning shadow sample application...\n"
+# python basicShadowUpdater.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001"
+
+printf "\nRunning DenonSerial to Shadow"
+python denon-control.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001" -p /dev/ttyUSB0 -t 2.0

@@ -32,9 +32,9 @@ class DenonProtocol:
                 if key in self.state.keys():
                     val = self.state[key]
 
-                if ob <> val:
-                    has_changed = True
-                    self.state[key] = ob
+                    if ob <> val:
+                        has_changed = True
+                        self.state[key] = ob
 
             events = events[1:]
 
