@@ -20,12 +20,25 @@ class DenonProtocol:
         return queries
 
     def parseEvents(self, events):
+        has_changed = False
+
         while events:
             ev = events[0][0:2]
             if ev in self.protocol.values():
-                self.state[ self.protocol.keys()[self.protocol.values().index(ev)] ] = events[0][2:]
+                val = ''
+                ob = events[0][2:]
+                key = self.protocol.keys()[self.protocol.values().index(ev)]
+
+                if key in self.state.keys():
+                    val = self.state[key]
+
+                if ob <> val:
+                    has_changed = True
+                    self.state[key] = ob
 
             events = events[1:]
+
+        return has_changed
 
 
     def getState(self):
