@@ -24,4 +24,4 @@ set -e
 # python basicShadowUpdater.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001"
 
 printf "\nRunning DenonSerial to Shadow"
-python denon-control.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001" -p /dev/ttyUSB0 -t 2.0
+python denon-control.py -e a38islc3h7i87s.iot.us-east-1.amazonaws.com -r certs/root-CA.crt -c certs/SeriAlexa-0001.cert.pem -k certs/SeriAlexa-0001.private.key -n "SeriAlexa-0001" -p /dev/ttyUSB0 -t 0.5

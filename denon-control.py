@@ -12,6 +12,24 @@ import logging
 import time
 
 
+class shadowCallbackContainer:
+    def __init__(self, deviceShadowInstance):
+        self.deviceShadowInstance = deviceShadowInstance
+
+    # Custom Shadow callback
+    def customShadowCallback_Delta(self, payload, responseStatus, token):
+        # payload is a JSON string ready to be parsed using json.loads(...)
+        # in both Py2.x and Py3.x
+        print("Received a delta message:")
+        payloadDict = json.loads(payload)
+        deltaMessage = json.dumps(payloadDict["state"])
+        print(deltaMessage)
+        print("Request to update the reported state...")
+        newPayload = '{"state":{"reported":' + deltaMessage + '}}'
+        self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
+        print("Sent.")
+
+
 # Read in command-line parameters
 parser = argparse.ArgumentParser()
 # IOT args
@@ -76,15 +94,15 @@ def customShadowCallback_Update(payload, responseStatus, token):
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
 
-def customShadowCallback_Delete(payload, responseStatus, token):
-    if responseStatus == "timeout":
-        print("Delete request " + token + " time out!")
-    if responseStatus == "accepted":
-        print("~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Delete request with token: " + token + " accepted!")
-        print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
-    if responseStatus == "rejected":
-        print("Delete request " + token + " rejected!")
+# def customShadowCallback_Delete(payload, responseStatus, token):
+#     if responseStatus == "timeout":
+#         print("Delete request " + token + " time out!")
+#     if responseStatus == "accepted":
+#         print("~~~~~~~~~~~~~~~~~~~~~~~")
+#         print("Delete request with token: " + token + " accepted!")
+#         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
+#     if responseStatus == "rejected":
+#         print("Delete request " + token + " rejected!")
 
 
 # Init AWSIoTMQTTShadowClient
@@ -110,7 +128,13 @@ myAWSIoTMQTTShadowClient.connect()
 deviceShadowHandler = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(thingName, True)
 
 # Delete shadow JSON doc
-deviceShadowHandler.shadowDelete(customShadowCallback_Delete, 5)
+# deviceShadowHandler.shadowDelete(customShadowCallback_Delete, 5)
+
+shadowCallbackContainer_Bot = shadowCallbackContainer(deviceShadowHandler)
+
+# Listen on deltas
+deviceShadowHandler.shadowRegisterDeltaCallback(shadowCallbackContainer_Bot.customShadowCallback_Delta)
+
 
 
 
@@ -119,12 +143,11 @@ def do_something(connection, protocol):
         connection.open()
 
     # listen for status events
-    events = connection.listen(1.0*timeout)
-
+    events = connection.listen()
     if protocol.parseEvents(events):
+        # print "\n\nEvents: " + str(events) + "\n\n"
         state = protocol.getState()
-        print str(datetime.now()) + " - " + json.dumps(state)
-
+        # print str(datetime.now()) + " - " + json.dumps(state)
         deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
 
 
@@ -137,7 +160,7 @@ def run(connection, protocol):
     connection.send(protocol.makeQuery(query))
 
     while True:
-        # time.sleep(0.2*timeout)
+        time.sleep(0.9*timeout)         # crude approach to timing adjustment
         do_something(connection, protocol)
 
 if __name__ == "__main__":
