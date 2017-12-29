@@ -19,6 +19,17 @@ class DenonProtocol:
 
         return queries
 
+    def makeCommands(self, params):
+        commands = []
+
+        for c, p in params.iteritems():
+            if c in self.protocol.keys():
+                commands.append(str(self.protocol.values()[self.protocol.keys().index(c)] + p))
+
+        return commands
+
+
+
     def parseEvents(self, events):
         has_changed = False
 

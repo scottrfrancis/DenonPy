@@ -12,23 +12,6 @@ import logging
 import time
 
 
-class shadowCallbackContainer:
-    def __init__(self, deviceShadowInstance):
-        self.deviceShadowInstance = deviceShadowInstance
-
-    # Custom Shadow callback
-    def customShadowCallback_Delta(self, payload, responseStatus, token):
-        # payload is a JSON string ready to be parsed using json.loads(...)
-        # in both Py2.x and Py3.x
-        print("Received a delta message:")
-        payloadDict = json.loads(payload)
-        deltaMessage = json.dumps(payloadDict["state"])
-        print(deltaMessage)
-        # print("Request to update the reported state...")
-        # newPayload = '{"state":{"reported":' + deltaMessage + '}}'
-        # self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
-        # print("Sent.")
-
 
 # Read in command-line parameters
 parser = argparse.ArgumentParser()
@@ -78,6 +61,9 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 
+# setup serial & protocol
+connection = DenonSerial.DenonSerial(port)
+protocol = DenonProtocol.DenonProtocol()
 
 # Custom Shadow callback
 def customShadowCallback_Update(payload, responseStatus, token):
@@ -103,6 +89,29 @@ def customShadowCallback_Update(payload, responseStatus, token):
 #         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
 #     if responseStatus == "rejected":
 #         print("Delete request " + token + " rejected!")
+
+class shadowCallbackContainer:
+    def __init__(self, deviceShadowInstance):
+        self.deviceShadowInstance = deviceShadowInstance
+
+    # Custom Shadow callback
+    def customShadowCallback_Delta(self, payload, responseStatus, token):
+        # payload is a JSON string ready to be parsed using json.loads(...)
+        # in both Py2.x and Py3.x
+        print("Received a delta message:")
+        payloadDict = json.loads(payload)
+        deltaMessage = json.dumps(payloadDict["state"])
+        print(deltaMessage + "\n")
+
+        commands = protocol.makeCommands(payloadDict["state"])
+        print("\nbuilt commands: " + str(commands) + "\n")
+        connection.send(commands)
+
+
+        # print("Request to update the reported state...")
+        # newPayload = '{"state":{"reported":' + deltaMessage + '}}'
+        # self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
+        # print("Sent.")
 
 
 # Init AWSIoTMQTTShadowClient
@@ -132,13 +141,14 @@ deviceShadowHandler = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(thing
 
 shadowCallbackContainer_Bot = shadowCallbackContainer(deviceShadowHandler)
 
+
 # Listen on deltas
 deviceShadowHandler.shadowRegisterDeltaCallback(shadowCallbackContainer_Bot.customShadowCallback_Delta)
 
 
 
 
-def do_something(connection, protocol):
+def do_something():
     if not connection.isOpen():
         connection.open()
 
@@ -152,7 +162,7 @@ def do_something(connection, protocol):
 
 
 
-def run(connection, protocol):
+def run():
     if not connection.isOpen():
         connection.open()
 
@@ -161,11 +171,9 @@ def run(connection, protocol):
 
     while True:
         time.sleep(0.9*timeout)         # crude approach to timing adjustment
-        do_something(connection, protocol)
+        do_something()
 
 if __name__ == "__main__":
-    connection = DenonSerial.DenonSerial(port)
-    protocol = DenonProtocol.DenonProtocol()
 
     # do_something(connection, protocol)
-    run(connection, protocol)
+    run()
