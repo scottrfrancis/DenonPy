@@ -37,7 +37,7 @@ class DenonSerial:
             self.readbuffer += self.ser.read(n)
             e = self.readbuffer.strip().split(self.RECORD_SEPARATOR)
 
-            if self.readbuffer == self.RECORD_SEPARATOR:
+            if self.readbuffer[-1] == self.RECORD_SEPARATOR:
                 events = e
                 self.readbuffer = ''
             else:
@@ -45,6 +45,3 @@ class DenonSerial:
                 self.readbuffer = e[-1] # retain the partial ones
 
         return events
-
-        # self.ser.timeout = float(timeout)
-        # return self.ser.read(100*135).strip().split('\r')    # 100 events of max size

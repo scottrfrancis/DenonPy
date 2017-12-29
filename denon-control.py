@@ -24,10 +24,10 @@ class shadowCallbackContainer:
         payloadDict = json.loads(payload)
         deltaMessage = json.dumps(payloadDict["state"])
         print(deltaMessage)
-        print("Request to update the reported state...")
-        newPayload = '{"state":{"reported":' + deltaMessage + '}}'
-        self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
-        print("Sent.")
+        # print("Request to update the reported state...")
+        # newPayload = '{"state":{"reported":' + deltaMessage + '}}'
+        # self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
+        # print("Sent.")
 
 
 # Read in command-line parameters
