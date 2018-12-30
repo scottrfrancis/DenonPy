@@ -1,9 +1,11 @@
 
 class DenonProtocol:
     protocol = { 'Power': 'PW'
-                # ,'Mute':  'MU'
-                # ,'Video': 'SV'
-                # ,'Volume': 'MV'
+                 ,'Mute':  'MU'
+                 ,'Video': 'SV'
+                 ,'Volume': 'MV'
+                 ,'Input': 'SI'
+                 ,'Zone2': 'Z2'
     }
     state = {}
 
