@@ -1,11 +1,9 @@
 
 class DenonProtocol:
     protocol = { 'Power': 'PW'
-                 ,'Mute':  'MU'
-                 ,'Video': 'SV'
-                 ,'Volume': 'MV'
-                 ,'Input': 'SI'
-                 ,'Zone2': 'Z2'
+                # ,'Mute':  'MU'
+                # ,'Video': 'SV'
+                # ,'Volume': 'MV'
     }
     state = {}
 
@@ -40,12 +38,22 @@ class DenonProtocol:
             if ev in self.protocol.values():
                 val = ''
                 ob = events[0][2:]
-                key = self.protocol.keys()[self.protocol.values().index(ev)]
+                
+                print("look up key")
+                keys = self.protocol.keys()
+                print(keys)
+                vals = self.protocol.values()
+                print(vals)
+                idx = list(self.protocol.values()).index(ev)
+                print(idx)
+                print()
+
+                key = list(self.protocol.keys())[list(self.protocol.values()).index(ev)]
 
                 if key in self.state.keys():
                     val = self.state[key]
 
-                if ob <> val:
+                if ob != val:
                     has_changed = True
                     self.state[key] = ob
 

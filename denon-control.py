@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import DenonProtocol
@@ -11,6 +11,13 @@ import json
 import logging
 import time
 
+# remote debug harness -- unco
+# import ptvsd
+# import socket
+# this_ip = (([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0]
+# ptvsd.enable_attach(address=(this_ip,3000), redirect_output=True)
+# ptvsd.wait_for_attach()
+# end debug harness
 
 
 # Read in command-line parameters
@@ -28,7 +35,7 @@ parser.add_argument("-id", "--clientId", action="store", dest="clientId", defaul
 # serial port args
 parser.add_argument("-p", "--port", action="store", required=True, dest="port", default="/dev/ttyUSB0", help="Serial Port Device")
 parser.add_argument("-t", "--timeout", action="store", required=True, dest="timeout", default="0.5", help="Timeout to wait for events")
-parser.add_argument("-q", "--query", action="store", dest="query", default="['Mute','Power','Video','Volume','Input']", help="Inital queries to kick things off")
+parser.add_argument("-q", "--query", action="store", dest="query", default="['Mute','Power','Video','Volume']", help="Inital queries to kick things off")
 
 
 args = parser.parse_args()
@@ -104,6 +111,7 @@ class shadowCallbackContainer:
         print(deltaMessage + "\n")
 
         commands = protocol.makeCommands(payloadDict["state"])
+        print("\nbuilt commands: " + str(commands) + "\n")
         connection.send(commands)
 
 
@@ -154,10 +162,10 @@ def do_something():
     # listen for status events
     events = connection.listen()
     if protocol.parseEvents(events):
-        # print "\n\nEvents: " + str(events) + "\n\n"
+        print( "\n\nEvents: " + str(events) + "\n\n" )
         state = protocol.getState()
         # print str(datetime.now()) + " - " + json.dumps(state)
-        deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload(state), customShadowCallback_Update, 5)
+        deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
 
 
 

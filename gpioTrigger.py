@@ -48,7 +48,7 @@ def turn_on(channel):
     logger.info("Turning AVR ON")
     commandDict =   {
                         "Power": "ON"
-                        ,"Input": "TV/CBL"
+                        # ,"Input": "TVCBL"
                     }
     connection.send( protocol.makeCommands(commandDict) )
 
