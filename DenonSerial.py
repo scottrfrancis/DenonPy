@@ -28,13 +28,13 @@ class DenonSerial:
         return self.ser.isOpen()
 
     def send(self, commands):
-        self.ser.write(self.RECORD_SEPARATOR.join(commands) + self.RECORD_SEPARATOR)
+        self.ser.write((self.RECORD_SEPARATOR.join(commands) + self.RECORD_SEPARATOR).encode())
 
     def listen(self):
         events = []
         n = self.ser.inWaiting()
         if n > 0:
-            self.readbuffer += self.ser.read(n)
+            self.readbuffer += self.ser.read(n).decode('ascii')
             e = self.readbuffer.strip().split(self.RECORD_SEPARATOR)
 
             if self.readbuffer[-1] == self.RECORD_SEPARATOR:

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import DenonProtocol
 import DenonSerial
@@ -48,7 +48,7 @@ def turn_on(channel):
     logger.info("Turning AVR ON")
     commandDict =   {
                         "Power": "ON"
-                        ,"Input": "TV/CBL"
+                        # ,"Input": "TVCBL"
                     }
     connection.send( protocol.makeCommands(commandDict) )
 
@@ -80,7 +80,7 @@ def do_something():
     # listen for status events
     events = connection.listen()
     if protocol.parseEvents(events):
-        print "\n\nEvents: " + str(events) + "\n\n"
+        print( "\n\nEvents: " + str(events) + "\n\n" )
 
 def run():
     while True:
