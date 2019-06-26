@@ -30,7 +30,6 @@ parser.add_argument("-k", "--key", action="store", dest="privateKeyPath", help="
 parser.add_argument("-w", "--websocket", action="store_true", dest="useWebsocket", default=False,
                     help="Use MQTT over WebSocket")
 parser.add_argument("-n", "--thingName", action="store", dest="thingName", default="Bot", help="Targeted thing name")
-parser.add_argument("-id", "--clientId", action="store", dest="clientId", default="SeriAlexa", help="Targeted client id")
 
 # serial port args
 parser.add_argument("-p", "--port", action="store", required=True, dest="port", default="/dev/ttyUSB0", help="Serial Port Device")
@@ -45,7 +44,7 @@ certificatePath = args.certificatePath
 privateKeyPath = args.privateKeyPath
 useWebsocket = args.useWebsocket
 thingName = args.thingName
-clientId = args.clientId
+clientId = args.thingName
 
 port = args.port
 timeout = float(args.timeout)
@@ -72,7 +71,6 @@ logger.addHandler(streamHandler)
 connection = DenonSerial.DenonSerial(port)
 protocol = DenonProtocol.DenonProtocol()
 
-# Custom Shadow callback
 def customShadowCallback_Update(payload, responseStatus, token):
     # payload is a JSON string ready to be parsed using json.loads(...)
     # in both Py2.x and Py3.x
@@ -87,38 +85,15 @@ def customShadowCallback_Update(payload, responseStatus, token):
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
 
-# def customShadowCallback_Delete(payload, responseStatus, token):
-#     if responseStatus == "timeout":
-#         print("Delete request " + token + " time out!")
-#     if responseStatus == "accepted":
-#         print("~~~~~~~~~~~~~~~~~~~~~~~")
-#         print("Delete request with token: " + token + " accepted!")
-#         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
-#     if responseStatus == "rejected":
-#         print("Delete request " + token + " rejected!")
+def customShadowCallback_Delta(self, payload, responseStatus, token):
+    print("Received a delta message:")
+    payloadDict = json.loads(payload)
+    deltaMessage = json.dumps(payloadDict["state"])
+    print(deltaMessage + "\n")
 
-class shadowCallbackContainer:
-    def __init__(self, deviceShadowInstance):
-        self.deviceShadowInstance = deviceShadowInstance
-
-    # Custom Shadow callback
-    def customShadowCallback_Delta(self, payload, responseStatus, token):
-        # payload is a JSON string ready to be parsed using json.loads(...)
-        # in both Py2.x and Py3.x
-        print("Received a delta message:")
-        payloadDict = json.loads(payload)
-        deltaMessage = json.dumps(payloadDict["state"])
-        print(deltaMessage + "\n")
-
-        commands = protocol.makeCommands(payloadDict["state"])
-        print("\nbuilt commands: " + str(commands) + "\n")
-        connection.send(commands)
-
-
-        # print("Request to update the reported state...")
-        # newPayload = '{"state":{"reported":' + deltaMessage + '}}'
-        # self.deviceShadowInstance.shadowUpdate(newPayload, None, 5)
-        # print("Sent.")
+    commands = protocol.makeCommands(payloadDict["state"])
+    print("\nbuilt commands: " + str(commands) + "\n")
+    connection.send(commands)
 
 
 # Init AWSIoTMQTTShadowClient
@@ -143,16 +118,8 @@ myAWSIoTMQTTShadowClient.connect()
 # Create a deviceShadow with persistent subscription
 deviceShadowHandler = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(thingName, True)
 
-# Delete shadow JSON doc
-# deviceShadowHandler.shadowDelete(customShadowCallback_Delete, 5)
-
-shadowCallbackContainer_Bot = shadowCallbackContainer(deviceShadowHandler)
-
-
 # Listen on deltas
-deviceShadowHandler.shadowRegisterDeltaCallback(shadowCallbackContainer_Bot.customShadowCallback_Delta)
-
-
+deviceShadowHandler.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 
 
 def do_something():
@@ -164,8 +131,11 @@ def do_something():
     if protocol.parseEvents(events):
         print( "\n\nEvents: " + str(events) + "\n\n" )
         state = protocol.getState()
-        # print str(datetime.now()) + " - " + json.dumps(state)
-        deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
+        print( str(datetime.now()) + " - " + json.dumps(state) )
+        try:
+            deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
+        except Exception as e:
+            print(e)
 
 
 
