@@ -6,14 +6,14 @@ Serial control of Denon Receiver using Python. Implements an AWS IoT Thing that 
 Objective
 ---------
 
-Create scripts to control and record status of a Denon AVR 2308ci receiver. [Denon Command Protocol](https://usa.denon.com/us/product/HomeTheater/receivers/AVR2308CI?docname=AVR-2308CISerialProtocol_Ver540.pdf\)
+Create scripts to control and record status of a Denon AVR 2308ci receiver. [Denon Command Protocol](https://usa.denon.com/us/product/HomeTheater/receivers/AVR2308CI?docname=AVR-2308CISerialProtocol_Ver540.pdf)
 
-See [the blog](https://scottrfrancis.wordpress.com/2017/12/10/adding-alexa-to-an-old-av-receiver/) about this project.
+See [the blog](https://scottrfrancis.wordpress.com/2017/12/10/adding-alexa-to-an-old-av-receiver) about this project.
 
 Environment
 -----------
 
-Denon AVR2308CI Raspberry Pi 2 [PL2303 USB Serial Adapter](https://www.amazon.com/gp/product/B0758B6MK6/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1\)
+Denon AVR2308CI Raspberry Pi 2 [PL2303 USB Serial Adapter](https://www.amazon.com/gp/product/B0758B6MK6/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
 
 Design
 ------
