@@ -7,8 +7,6 @@ class DenonProtocol:
     }
     state = {}
 
-    # def __init__():
-
     def makeQuery(self, parameters):
         queries = [];
 
@@ -27,8 +25,6 @@ class DenonProtocol:
                 commands.append(str(list(self.protocol.values())[list(self.protocol.keys()).index(c)] + p))
 
         return commands
-
-
 
     def parseEvents(self, events):
         has_changed = False
@@ -50,7 +46,6 @@ class DenonProtocol:
             events = events[1:]
 
         return has_changed
-
 
     def getState(self):
         return self.state
