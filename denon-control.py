@@ -61,7 +61,7 @@ if not args.useWebsocket and (not args.certificatePath or not args.privateKeyPat
 
 # Configure logging
 logger = logging.getLogger("AWSIoTPythonSDK.core")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARN)
 streamHandler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 streamHandler.setFormatter(formatter)
@@ -75,24 +75,24 @@ def customShadowCallback_Update(payload, responseStatus, token):
     # payload is a JSON string ready to be parsed using json.loads(...)
     # in both Py2.x and Py3.x
     if responseStatus == "timeout":
-        print("Update request " + token + " time out!")
-    if responseStatus == "accepted":
-        payloadDict = json.loads(payload)
-        print("~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Update request with token: " + token + " accepted!")
-        print("payload: " + json.dumps(payloadDict)) #["state"]["desired"]["property"]))
-        print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
+        logger.debug("Update request " + token + " time out!")
+    # if responseStatus == "accepted":
+    #     payloadDict = json.loads(payload)
+    #     print("~~~~~~~~~~~~~~~~~~~~~~~")
+    #     print("Update request with token: " + token + " accepted!")
+    #     print("payload: " + json.dumps(payloadDict)) #["state"]["desired"]["property"]))
+    #     print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
-        print("Update request " + token + " rejected!")
+        logger.debug("Update request " + token + " rejected!")
 
-def customShadowCallback_Delta(self, payload, responseStatus, token):
-    print("Received a delta message:")
+def customShadowCallback_Delta(payload, responseStatus, token):
+    logger.debug("Received a delta message:")
     payloadDict = json.loads(payload)
     deltaMessage = json.dumps(payloadDict["state"])
-    print(deltaMessage + "\n")
+    logger.debug(deltaMessage + "\n")
 
     commands = protocol.makeCommands(payloadDict["state"])
-    print("\nbuilt commands: " + str(commands) + "\n")
+    logger.debug("\nbuilt commands: " + str(commands) + "\n")
     connection.send(commands)
 
 
@@ -129,9 +129,9 @@ def do_something():
     # listen for status events
     events = connection.listen()
     if protocol.parseEvents(events):
-        print( "\n\nEvents: " + str(events) + "\n\n" )
+        logger.debug( "\n\nEvents: " + str(events) + "\n\n" )
         state = protocol.getState()
-        print( str(datetime.now()) + " - " + json.dumps(state) )
+        logger.info( str(datetime.now()) + " - " + json.dumps(state) )
         try:
             deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
         except Exception as e:
