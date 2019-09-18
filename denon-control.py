@@ -61,7 +61,7 @@ if not args.useWebsocket and (not args.certificatePath or not args.privateKeyPat
 
 # Configure logging
 logger = logging.getLogger("AWSIoTPythonSDK.core")
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.DEBUG)
 streamHandler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 streamHandler.setFormatter(formatter)
@@ -129,7 +129,7 @@ def do_something():
     # listen for status events
     events = connection.listen()
     if protocol.parseEvents(events):
-        logger.debug( "\n\nEvents: " + str(events) + "\n\n" )
+        logger.info( "\n\nEvents: " + str(events) + "\n\n" )
         state = protocol.getState()
         logger.info( str(datetime.now()) + " - " + json.dumps(state) )
         try:
