@@ -1,90 +1,81 @@
+import functools
 import re
 
 class DenonProtocol:
-    protocol = { 'Power': 'PW'
-                ,'Mute':  'MU'
-                ,'Video': 'SV'
-                # ,'Volume': 'MV'
-                ,'VolumeMax': 'MVMAX\s'
-                ,'VolumeLevel': 'MV'
-    }
+    def __init__(self):
+        self.protocol = [
+            { 'state-key':  "Power",            # publicly visible reported/desired name
+                'tag2':       "PW",               # two letter Command defined by denon
+                'parser': self.parseSimpleArg     # function to parse the event
+            },
+            { 'state-key':  "Mute", 
+                'tag2':       'MU',
+                'parser': self.parseSimpleArg
+            },
+            { 'state-key':  'Volume',
+                'tag2':       'MV',
+                'parser': self.volumeParser
+            }
+        ]
+ 
+        self.volMax = 100                          # default in case max message never comes
 
-    state = {}
+        self.state = {}
+
+
+    # simple parser strips the tag from the event and considers the remainder of the event
+    #   to be the argument
+    def parseSimpleArg(self, tag, event):
+        return event[len(tag):] if event.find(tag, 0) >= 0 else ""
+
+    # volume is tricky... it's a compound thing, where level and max are reported as separate
+    #   events, but always paired
+    def volumeParser(self, tag, event):
+        # first strip the comand tag
+        arg = self.parseSimpleArg(tag, event)
+
+        # check for vol max and update the member var ***AS SIDE EFFECT***
+        maxArg = self.parseSimpleArg("MAX ", arg)
+        if len(maxArg) > 0:
+            self.volMax = int(maxArg)
+            return ""                       # squelch the event
+
+        # arg has the volume data -- but could be 2 or 3 digits
+        level = int(arg)/(10**(len(arg) - 2))
+        percent = (level/self.volMax)*100
+        return str(int(percent))
 
     def makeQuery(self, parameters):
-        queries = [];
-
-        while parameters:
-            if parameters[0] in self.protocol.keys():
-                queries.append(self.protocol[parameters[0]] + "?")
-            parameters = parameters[1:]
-
+        queries = list(map(lambda x: x['tag2'] + "?", [x for x in self.protocol if x['state-key'] in parameters]))
+        print("made query " + str(queries) + " from " + str(parameters))
         return queries
 
     def makeCommands(self, params):
-        commands = []
-
-        for c, p in params.items():
-            if c in self.protocol.keys():
-                commands.append(str(list(self.protocol.values())[list(self.protocol.keys()).index(c)] + p))
-
+        commands = list(map(lambda c: c['tag2'] + params[c['state-key']].upper(), 
+            [ x for x in self.protocol if x['state-key'] in params.keys() ] ))
         return commands
 
     def parseEvents(self, events):
         has_changed = False
 
-        # while events:
-        #     ev = events[0][0:2]
-        #     if ev in self.protocol.values():
-        #         val = ''
-        #         ob = events[0][2:]
-        #         key = list(self.protocol.keys())[list(self.protocol.values()).index(ev)]
+        if len(events) <= 0:
+            return has_changed
 
-        #         if key in self.state.keys():
-        #             val = self.state[key]
+        while events:
+            e = events[0]
+            t2 = e[:2]
+            protos = [ x for x in self.protocol if x['tag2'] == t2 ]
+            if len(protos) > 0:
+                val = protos[0]['parser'](t2, e)
 
-        #         if ob != val:
-        #             has_changed = True
-        #             self.state[key] = ob
+                if len(val) > 0:
+                    self.state[protos[0]['state-key']] = val
+                    has_changed = True
 
-        #     events = events[1:]
-
-        for rk in list(map(lambda k: re.compile(k), list(self.protocol.values()))):
-            print("searching " + k)
-            matches = [ x for x in list(map(lambda e: rk.match(e), events)) 
-                if x != None and x.start() == 0 ] 
-            print(" found " + matches)
-
-            l = len(matches)
-            if l > 0:
-                l -= 1
-                # there could be more than one match, so take the 'last' as most current
-                e = matches[l].end()
-                key = matches[l].string[matches[l].start():e]
-                ob = matches[l].string[e:]
-                print("setting " + key + ":" + ob)
-
-                has_changed = True
-                self.state[key] = ob
-
-        self.normalizeVolume()
+            events = events[1:]
 
         return has_changed
     
-    def normalizeVolume(self):
-        max = 98
-        try:
-            max = self.state.pop("VolumeMax")
-        except:
-            pass
-
-        try:
-            level = self.state.pop("VolumeLevel")
-            vol = int((int(level[0:2])/int(max))*100)
-            self.state['Volume'] = vol
-        except:
-            pass
-
 
     def getState(self):
         return self.state
