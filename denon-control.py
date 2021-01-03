@@ -3,6 +3,7 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import DenonProtocol
 import DenonSerial
+import DenonTelnet
 import Shadow
 
 import argparse
@@ -32,8 +33,12 @@ parser.add_argument("-w", "--websocket", action="store_true", dest="useWebsocket
 parser.add_argument("-n", "--thingName", action="store", dest="thingName", default="Bot", help="Targeted thing name")
 
 # serial port args
-parser.add_argument("-p", "--port", action="store", required=True, dest="port", default="/dev/ttyUSB0", help="Serial Port Device")
-parser.add_argument("-t", "--timeout", action="store", required=True, dest="timeout", default="0.5", help="Timeout to wait for events")
+parser.add_argument("-p", "--port", action="store", required=False, dest="port", default="/dev/ttyUSB0", help="Serial Port Device")
+parser.add_argument("-t", "--timeout", action="store", required=False, dest="timeout", default="0.5", help="Timeout to wait for events")
+
+# telnet args
+parser.add_argument("-h", "--host", action="store", required=False, dest="target", help="Target name/IP of AVR")
+
 parser.add_argument("-q", "--query", action="store", dest="query", default="['Mute','Power','Video','Volume']", help="Inital queries to kick things off")
 
 
@@ -47,6 +52,9 @@ thingName = args.thingName
 clientId = args.thingName
 
 port = args.port
+
+target = args.target
+
 timeout = float(args.timeout)
 query = eval(args.query)
 
@@ -68,7 +76,10 @@ streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 
 # setup serial & protocol
-connection = DenonSerial.DenonSerial(port)
+if not port == None:
+    connection = DenonSerial.DenonSerial(port)
+elif not target == None:
+    connection = DenonTelnet.DenonTelnet(target)
 protocol = DenonProtocol.DenonProtocol()
 
 def customShadowCallback_Update(payload, responseStatus, token):

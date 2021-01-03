@@ -41,9 +41,12 @@ class DenonProtocol:
             return ""                       # squelch the event
 
         # arg has the volume data -- but could be 2 or 3 digits
-        level = int(arg)/(10**(len(arg) - 2))
-        percent = (level/self.volMax)*100
-        return str(int(percent))
+        try:
+            level = int(arg)/(10**(len(arg) - 2))
+            percent = (level/self.volMax)*100
+            return str(int(percent))
+        except:
+            return ""
 
     def makeQuery(self, parameters):
         queries = list(map(lambda x: x['tag2'] + "?", [x for x in self.protocol if x['state-key'] in parameters]))
