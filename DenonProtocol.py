@@ -18,7 +18,7 @@ class DenonProtocol:
             }
         ]
  
-        self.volMax = 100                          # default in case max message never comes
+        self.volMax = 695                          # default in case max message never comes
 
         self.state = {}
 
@@ -36,8 +36,8 @@ class DenonProtocol:
 
         # check for vol max and update the member var ***AS SIDE EFFECT***
         maxArg = self.parseSimpleArg("MAX ", arg)
-        if len(maxArg) > 0:
-            self.volMax = int(maxArg)
+        if maxArg:
+            self.volMax = int(maxArg)/(10**(len(maxArg) - 2))
             return ""                       # squelch the event
 
         # arg has the volume data -- but could be 2 or 3 digits
@@ -68,10 +68,10 @@ class DenonProtocol:
             e = events[0]
             t2 = e[:2]
             protos = [ x for x in self.protocol if x['tag2'] == t2 ]
-            if len(protos) > 0:
+            if protos:
                 val = protos[0]['parser'](t2, e)
 
-                if len(val) > 0:
+                if val:
                     self.state[protos[0]['state-key']] = val
                     has_changed = True
 

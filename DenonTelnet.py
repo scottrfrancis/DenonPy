@@ -17,7 +17,7 @@ class DenonTelnet:
             pass
 
     def isOpen(self):
-        return self.tn.get_socket() != None
+        return self.tn.get_socket() is not None
 
     def send(self, commands):
         self.tn.write(bytearray(self.RECORD_SEPARATOR.join(commands) + self.RECORD_SEPARATOR, 'ascii'))
