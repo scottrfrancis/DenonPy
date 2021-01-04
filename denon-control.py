@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import DenonProtocol
 import DenonSerial
 import DenonTelnet
-import Shadow
+from GreengrassAwareConnection import *
 
 import argparse
 from datetime import datetime
@@ -82,55 +81,7 @@ elif target is not None:
     connection = DenonTelnet.DenonTelnet(target)
 protocol = DenonProtocol.DenonProtocol()
 
-def customShadowCallback_Update(payload, responseStatus, token):
-    # payload is a JSON string ready to be parsed using json.loads(...)
-    # in both Py2.x and Py3.x
-    if responseStatus == "timeout":
-        logger.debug("Update request " + token + " time out!")
-    # if responseStatus == "accepted":
-    #     payloadDict = json.loads(payload)
-    #     print("~~~~~~~~~~~~~~~~~~~~~~~")
-    #     print("Update request with token: " + token + " accepted!")
-    #     print("payload: " + json.dumps(payloadDict)) #["state"]["desired"]["property"]))
-    #     print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
-    if responseStatus == "rejected":
-        logger.debug("Update request " + token + " rejected!")
-
-def customShadowCallback_Delta(payload, responseStatus, token):
-    logger.debug("Received a delta message:")
-    payloadDict = json.loads(payload)
-    deltaMessage = json.dumps(payloadDict["state"])
-    logger.debug(deltaMessage + "\n")
-
-    commands = protocol.makeCommands(payloadDict["state"])
-    logger.debug("\nbuilt commands: " + str(commands) + "\n")
-    connection.send(commands)
-
-
-# Init AWSIoTMQTTShadowClient
-myAWSIoTMQTTShadowClient = None
-if useWebsocket:
-    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient(clientId, useWebsocket=True)
-    myAWSIoTMQTTShadowClient.configureEndpoint(host, 443)
-    myAWSIoTMQTTShadowClient.configureCredentials(rootCAPath)
-else:
-    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient(clientId)
-    myAWSIoTMQTTShadowClient.configureEndpoint(host, 8883)
-    myAWSIoTMQTTShadowClient.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
-
-# AWSIoTMQTTShadowClient configuration
-myAWSIoTMQTTShadowClient.configureAutoReconnectBackoffTime(1, 32, 20)
-myAWSIoTMQTTShadowClient.configureConnectDisconnectTimeout(10)  # 10 sec
-myAWSIoTMQTTShadowClient.configureMQTTOperationTimeout(5)  # 5 sec
-
-# Connect to AWS IoT
-myAWSIoTMQTTShadowClient.connect()
-
-# Create a deviceShadow with persistent subscription
-deviceShadowHandler = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(thingName, True)
-
-# Listen on deltas
-deviceShadowHandler.shadowRegisterDeltaCallback(customShadowCallback_Delta)
+iotConnection = GreengrassAwareConnection(host, rootCAPath, certificatePath, privateKeyPath, thingName ) #, deltas)
 
 
 def do_something():
@@ -144,10 +95,10 @@ def do_something():
         state = protocol.getState()
         logger.info( str(datetime.now()) + " - " + json.dumps(state) )
         try:
-            deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
+            # deviceShadowHandler.shadowUpdate(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
+            iotConnection.publishMessageOnTopic(json.dumps(state), "denon" ) #, qos=1):(Shadow.makeStatePayload("reported", state), customShadowCallback_Update, 5)
         except Exception as e:
             print(e)
-
 
 
 def run():
@@ -160,6 +111,7 @@ def run():
     while True:
         time.sleep(0.9*timeout)         # crude approach to timing adjustment
         do_something()
+
 
 if __name__ == "__main__":
 
